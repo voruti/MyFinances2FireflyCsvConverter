@@ -46,6 +46,9 @@ fs.readFile(inputFile, "utf8", (err, data) => {
             // remove column Type:
             delete record.Type;
 
+            // add field for opposing account:
+            record.OpposingAccount = "Fallback";
+
             return record;
         });
 
