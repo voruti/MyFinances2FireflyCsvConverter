@@ -1,0 +1,19 @@
+{
+    "name": "myfinances2fireflycsvconverter",
+    "version": "1.0.0",
+    "description": "A converter script that converts CSV exports of the My Finances app into a different CSV format that can be imported into Firefly III.",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/voruti/MyFinances2FireflyCsvConverter.git"
+    },
+    "author": "voruti",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/voruti/MyFinances2FireflyCsvConverter/issues"
+    },
+    "homepage": "https://github.com/voruti/MyFinances2FireflyCsvConverter#readme",
+    "dependencies": {
+        "csv": "^6.3.6"
+    }
+}
