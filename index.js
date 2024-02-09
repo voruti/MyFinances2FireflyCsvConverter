@@ -1,72 +1,67 @@
+const sqlite3 = require("sqlite3");
 const fs = require("fs");
-const csvParse = require("csv-parse");
 const csvStringify = require("csv-stringify");
 
 // input and output file paths:
-const inputFile = "input.csv";
+const inputFile = "FINANCE_DB";
 const outputFile = "output.csv";
 
-// read the CSV file:
-fs.readFile(inputFile, "utf8", (err, data) => {
+// initialize SQLite database:
+const db = new sqlite3.Database(inputFile);
+
+const accountQuery = `
+  SELECT *
+  FROM Account;
+`;
+
+// execute the SQL query:
+db.all(accountQuery, [], (err, rows) => {
     if (err) {
-        console.error(`Error reading file: ${err}`);
+        console.error("Error reading db:", err.message);
         return;
     }
 
-    // modify header:
-    function modifyHeader(csvString) {
-        const lines = csvString.split("\n");
-        lines[0] = lines[0]
+    // modify the rows:
+    const modifiedRecords = rows.map((row) => {
+        // convert cents to decimal format:
+        row.AmountOpen = (+row.AmountOpen / 100).toFixed(2);
 
-            // remove spaces from headers:
-            .split(/ +/)
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join("")
+        // remove unused columns:
+        delete row.Balance;
+        delete row.IsDefault;
+        delete row.IsChecked;
+        delete row.DeactivationDate;
+        delete row.UpdateDate;
+        delete row.CreateDate;
 
-            // fix duplicate category:
-            .replace("CategoryName;CategoryName", "CategoryName;CommonCategoryName");
+        row.MyFinancesNote = `MyFinances-ID: ${row._id}, MyFinances-Identifier: ${row.Identifier}`;
+        delete row._id;
+        delete row.Identifier;
 
-        return lines.join("\n");
-    }
-    const fixedCsvString = modifyHeader(data);
+        return row;
+    });
 
-    // parse the CSV data:
-    csvParse.parse(fixedCsvString, { delimiter: ";", columns: true }, (err, records) => {
+    // convert the modified records to CSV:
+    csvStringify.stringify(rows, { delimiter: ",", header: true }, (err, output) => {
         if (err) {
-            console.error(`Error parsing CSV: ${err}`);
+            console.error("Error converting to CSV:", err);
             return;
         }
 
-        // modify the records:
-        const modifiedRecords = records.map((record) => {
-            // add sign to amount:
-            const sign = record.Type === "1" ? "-" : "+";
-            record.Amount = `${sign}${record.Amount}`;
-
-            // remove column Type:
-            delete record.Type;
-
-            // add field for opposing account:
-            record.OpposingAccount = "Fallback";
-
-            return record;
-        });
-
-        // convert the modified records back to CSV:
-        csvStringify.stringify(modifiedRecords, { delimiter: ";", header: true }, (err, output) => {
+        // write the CSV to the output file:
+        fs.writeFile(outputFile, output, "utf8", (err) => {
             if (err) {
-                console.error(`Error converting to CSV: ${err}`);
-                return;
+                console.error("Error writing to file:", err);
+            } else {
+                console.log("Conversion successful. Output written to", outputFile);
             }
-
-            // write the new CSV to the output file:
-            fs.writeFile(outputFile, output, "utf8", (err) => {
-                if (err) {
-                    console.error(`Error writing to file: ${err}`);
-                } else {
-                    console.log(`Conversion successful. Output written to ${outputFile}`);
-                }
-            });
         });
+    });
+
+    // close the database connection:
+    db.close((dbErr) => {
+        if (dbErr) {
+            console.error("Error closing DB:", dbErr.message);
+        }
     });
 });
