@@ -1,21 +1,36 @@
-const sqlite3 = require("sqlite3");
-const fs = require("fs");
-const csvStringify = require("csv-stringify");
+import { Database } from "sqlite3";
+import { writeFile } from "fs";
+import { stringify } from "csv-stringify";
 
 // input and output file paths:
 const inputFile = "FINANCE_DB";
 const outputFile = "output.csv";
 
 // initialize SQLite database:
-const db = new sqlite3.Database(inputFile);
+const db = new Database(inputFile);
 
 const accountQuery = `
   SELECT *
   FROM Account;
 `;
 
+interface DbAccount {
+    _id?: number;
+    Name: string;
+    AmountOpen: number | string;
+    Balance?: number;
+    IsDefault?: number;
+    IsChecked?: number;
+    IsActive: number;
+    DeactivationDate?: string;
+    Identifier?: string;
+    CreateDate?: string;
+    UpdateDate?: string;
+    MyFinancesNote?: string;
+}
+
 // execute the SQL query:
-db.all(accountQuery, [], (err, rows) => {
+db.all(accountQuery, [], (err, rows: DbAccount[]) => {
     if (err) {
         console.error("Error reading db:", err.message);
         return;
@@ -31,8 +46,8 @@ db.all(accountQuery, [], (err, rows) => {
         delete row.IsDefault;
         delete row.IsChecked;
         delete row.DeactivationDate;
-        delete row.UpdateDate;
         delete row.CreateDate;
+        delete row.UpdateDate;
 
         row.MyFinancesNote = `MyFinances-ID: ${row._id}, MyFinances-Identifier: ${row.Identifier}`;
         delete row._id;
@@ -42,14 +57,14 @@ db.all(accountQuery, [], (err, rows) => {
     });
 
     // convert the modified records to CSV:
-    csvStringify.stringify(rows, { delimiter: ",", header: true }, (err, output) => {
+    stringify(rows, { delimiter: ",", header: true }, (err, output) => {
         if (err) {
             console.error("Error converting to CSV:", err);
             return;
         }
 
         // write the CSV to the output file:
-        fs.writeFile(outputFile, output, "utf8", (err) => {
+        writeFile(outputFile, output, "utf8", (err) => {
             if (err) {
                 console.error("Error writing to file:", err);
             } else {
