@@ -2,62 +2,27 @@ import { Database } from "sqlite3";
 import { writeFile } from "fs";
 import { stringify } from "csv-stringify";
 
+import { convertDbAccountToCsvAccount, type CsvAccount, type DbAccount } from "./model/account";
+
 // input and output file paths:
-const inputFile = "FINANCE_DB";
-const outputFile = "output.csv";
+const inputFile: string = "FINANCE_DB";
+const outputFile: string = "output.csv";
 
 // initialize SQLite database:
-const db = new Database(inputFile);
-
-const accountQuery = `
-  SELECT *
-  FROM Account;
-`;
-
-interface DbAccount {
-    _id?: number;
-    Name: string;
-    AmountOpen: number | string;
-    Balance?: number;
-    IsDefault?: number;
-    IsChecked?: number;
-    IsActive: number;
-    DeactivationDate?: string;
-    Identifier?: string;
-    CreateDate?: string;
-    UpdateDate?: string;
-    MyFinancesNote?: string;
-}
+const db: Database = new Database(inputFile);
 
 // execute the SQL query:
-db.all(accountQuery, [], (err, rows: DbAccount[]) => {
+db.all("SELECT * FROM Account;", [], (err, dbAccounts: DbAccount[]) => {
     if (err) {
         console.error("Error reading db:", err.message);
         return;
     }
 
     // modify the rows:
-    const modifiedRecords = rows.map((row) => {
-        // convert cents to decimal format:
-        row.AmountOpen = (+row.AmountOpen / 100).toFixed(2);
-
-        // remove unused columns:
-        delete row.Balance;
-        delete row.IsDefault;
-        delete row.IsChecked;
-        delete row.DeactivationDate;
-        delete row.CreateDate;
-        delete row.UpdateDate;
-
-        row.MyFinancesNote = `MyFinances-ID: ${row._id}, MyFinances-Identifier: ${row.Identifier}`;
-        delete row._id;
-        delete row.Identifier;
-
-        return row;
-    });
+    const csvAccounts: CsvAccount[] = dbAccounts.map(convertDbAccountToCsvAccount);
 
     // convert the modified records to CSV:
-    stringify(rows, { delimiter: ",", header: true }, (err, output) => {
+    stringify(csvAccounts, { delimiter: ",", header: true }, (err, output: string) => {
         if (err) {
             console.error("Error converting to CSV:", err);
             return;
