@@ -9,8 +9,8 @@ const inputFile: string = "FINANCE_DB";
 // initialize SQLite database:
 const db: Database = new Database(inputFile);
 
-new AccountConverter(db, "accounts.csv").run();
-new TransferConverter(db, "transfers.csv").run();
+new AccountConverter(db).run();
+new TransferConverter(db).run();
 
 // close the database connection:
 db.close((err) => {

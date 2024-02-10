@@ -1,14 +1,9 @@
-import { Database } from "sqlite3";
-import { writeFile } from "fs";
-import { stringify } from "csv-stringify";
+import type { Database } from "sqlite3";
 
-import {
-    convertDbTransferToCsvTransfer,
-    type CsvTransfer,
-    type DbTransfer
-} from "../model/transfers";
+import type { CsvTransfer, DbTransfer } from "../model/transfer";
+import { GenericConverter } from "./genericConverter";
 
-export class TransferConverter {
+export class TransferConverter extends GenericConverter<"transfer", DbTransfer, CsvTransfer> {
     private static readonly QUERY: string = `
             SELECT
                 t._id,
@@ -23,34 +18,23 @@ export class TransferConverter {
                 LEFT JOIN Account acctrg ON t.TargetAccountId = acctrg._id;
         `;
 
-    constructor(private db: Database, private outputFile: string) {}
+    constructor(db: Database) {
+        super(
+            db,
+            "transfers.csv",
+            TransferConverter.QUERY,
+            TransferConverter.convertDbTransferToCsvTransfer
+        );
+    }
 
-    public run(): void {
-        this.db.all(TransferConverter.QUERY, [], (err, dbTransfers: DbTransfer[]) => {
-            if (err) {
-                console.error("Error reading db:", err.message);
-                return;
-            }
-
-            // convert the rows:
-            const csvTransfers: CsvTransfer[] = dbTransfers.map(convertDbTransferToCsvTransfer);
-
-            // convert the modified records to CSV:
-            stringify(csvTransfers, { delimiter: ",", header: true }, (err, csvString: string) => {
-                if (err) {
-                    console.error("Error converting to CSV:", err);
-                    return;
-                }
-
-                // write the CSV to the output file:
-                writeFile(this.outputFile, csvString, "utf8", (err) => {
-                    if (err) {
-                        console.error("Error writing to file:", err);
-                    } else {
-                        console.log("Conversion successful. Output written to", this.outputFile);
-                    }
-                });
-            });
-        });
+    private static convertDbTransferToCsvTransfer(db: DbTransfer): CsvTransfer {
+        return {
+            Title: db.Title,
+            Amount: (db.Amount / 100).toFixed(2),
+            OperationDate: db.OperationDate,
+            SourceAccountName: db.SourceAccountName,
+            TargetAccountName: db.TargetAccountName,
+            MyFinancesNote: `MyFinances-ID: ${db._id}`
+        };
     }
 }

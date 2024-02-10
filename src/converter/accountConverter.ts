@@ -1,10 +1,9 @@
-import { Database } from "sqlite3";
-import { writeFile } from "fs";
-import { stringify } from "csv-stringify";
+import type { Database } from "sqlite3";
 
-import { convertDbAccountToCsvAccount, type CsvAccount, type DbAccount } from "../model/accounts";
+import type { CsvAccount, DbAccount } from "../model/account";
+import { GenericConverter } from "./genericConverter";
 
-export class AccountConverter {
+export class AccountConverter extends GenericConverter<"account", DbAccount, CsvAccount> {
     private static readonly QUERY: string = `
             SELECT
                 _id,
@@ -16,34 +15,22 @@ export class AccountConverter {
                 Account;
         `;
 
-    constructor(private db: Database, private outputFile: string) {}
+    constructor(db: Database) {
+        super(
+            db,
+            "accounts.csv",
+            AccountConverter.QUERY,
+            AccountConverter.convertDbAccountToCsvAccount
+        );
+    }
 
-    public run(): void {
-        this.db.all(AccountConverter.QUERY, [], (err, dbAccounts: DbAccount[]) => {
-            if (err) {
-                console.error("Error reading db:", err.message);
-                return;
-            }
-
-            // convert the rows:
-            const csvAccounts: CsvAccount[] = dbAccounts.map(convertDbAccountToCsvAccount);
-
-            // convert the modified records to CSV:
-            stringify(csvAccounts, { delimiter: ",", header: true }, (err, csvString: string) => {
-                if (err) {
-                    console.error("Error converting to CSV:", err);
-                    return;
-                }
-
-                // write the CSV to the output file:
-                writeFile(this.outputFile, csvString, "utf8", (err) => {
-                    if (err) {
-                        console.error("Error writing to file:", err);
-                    } else {
-                        console.log("Conversion successful. Output written to", this.outputFile);
-                    }
-                });
-            });
-        });
+    private static convertDbAccountToCsvAccount(db: DbAccount): CsvAccount {
+        return {
+            Name: db.Name,
+            AmountOpen: (db.AmountOpen / 100).toFixed(2),
+            DateOpen: db.DateOpen,
+            IsActive: db.IsActive,
+            MyFinancesNote: `MyFinances-ID: ${db._id}`
+        };
     }
 }
