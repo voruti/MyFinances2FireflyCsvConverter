@@ -28,7 +28,7 @@ export class AccountConverter extends GenericConverter<"account", DbAccount, Csv
         return {
             Name: db.Name,
             AmountOpen: (db.AmountOpen / 100).toFixed(2),
-            DateOpen: db.DateOpen,
+            DateOpen: new Date(db.DateOpen).toLocaleDateString(undefined, { dateStyle: "medium" }),
             IsActive: db.IsActive,
             MyFinancesNote: `MyFinances-ID: ${db._id}`
         };
