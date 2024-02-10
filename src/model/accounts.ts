@@ -3,14 +3,7 @@ export interface DbAccount {
     Name: string;
     AmountOpen: number;
     DateOpen: string;
-    Balance: number;
-    IsDefault: number;
-    IsChecked: number;
     IsActive: number;
-    DeactivationDate: string;
-    Identifier: string;
-    CreateDate: string;
-    UpdateDate: string;
 }
 
 export function convertDbAccountToCsvAccount(dbAccount: DbAccount): CsvAccount {
@@ -19,7 +12,7 @@ export function convertDbAccountToCsvAccount(dbAccount: DbAccount): CsvAccount {
         AmountOpen: (dbAccount.AmountOpen / 100).toFixed(2),
         DateOpen: dbAccount.DateOpen,
         IsActive: dbAccount.IsActive,
-        MyFinancesNote: `MyFinances-ID: ${dbAccount._id}, MyFinances-Identifier: ${dbAccount.Identifier}`
+        MyFinancesNote: `MyFinances-ID: ${dbAccount._id}`
     };
 }
 

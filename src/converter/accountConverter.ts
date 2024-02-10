@@ -5,10 +5,21 @@ import { stringify } from "csv-stringify";
 import { convertDbAccountToCsvAccount, type CsvAccount, type DbAccount } from "../model/accounts";
 
 export class AccountConverter {
+    private static readonly QUERY: string = `
+            SELECT
+                _id,
+                Name,
+                AmountOpen,
+                DateOpen,
+                IsActive
+            FROM
+                Account;
+        `;
+
     constructor(private db: Database, private outputFile: string) {}
 
     public run(): void {
-        this.db.all("SELECT * FROM Account;", [], (err, dbAccounts: DbAccount[]) => {
+        this.db.all(AccountConverter.QUERY, [], (err, dbAccounts: DbAccount[]) => {
             if (err) {
                 console.error("Error reading db:", err.message);
                 return;
