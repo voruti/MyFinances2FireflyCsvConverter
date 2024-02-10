@@ -2,6 +2,7 @@ import type { Database } from "sqlite3";
 
 import type { CsvAccount, DbAccount } from "../model/account";
 import { GenericConverter } from "./genericConverter";
+import { localeFormat } from "../localeUtils";
 
 export class AccountConverter extends GenericConverter<"account", DbAccount, CsvAccount> {
     private static readonly QUERY: string = `
@@ -27,8 +28,8 @@ export class AccountConverter extends GenericConverter<"account", DbAccount, Csv
     private static convertDbAccountToCsvAccount(db: DbAccount): CsvAccount {
         return {
             Name: db.Name,
-            AmountOpen: (db.AmountOpen / 100).toFixed(2),
-            DateOpen: new Date(db.DateOpen).toLocaleDateString(undefined, { dateStyle: "medium" }),
+            AmountOpen: localeFormat(db.AmountOpen / 100),
+            DateOpen: localeFormat(new Date(db.DateOpen)),
             IsActive: db.IsActive,
             MyFinancesNote: `MyFinances-ID: ${db._id}`
         };

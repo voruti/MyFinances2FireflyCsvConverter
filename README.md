@@ -9,3 +9,7 @@ A converter script that converts CSV exports of the [My Finances app](https://pl
 3. Run `node index.js` in a terminal in this directory.
 
 The file `import_config.json` can be used for the [Data Importer](https://github.com/firefly-iii/data-importer).
+
+## Configuration
+
+- Set the `F2F_LOCALE` environment variable to output in a locale format different from your system (see [Canonical Unicode Locale Identifiers](https://www.unicode.org/reports/tr35/#Canonical_Unicode_Locale_Identifiers) for available options). The `import_config.json` file is setup for the locale `en-US`.
