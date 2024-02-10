@@ -6,13 +6,13 @@ export interface DbAccount {
     IsActive: number;
 }
 
-export function convertDbAccountToCsvAccount(dbAccount: DbAccount): CsvAccount {
+export function convertDbAccountToCsvAccount(db: DbAccount): CsvAccount {
     return {
-        Name: dbAccount.Name,
-        AmountOpen: (dbAccount.AmountOpen / 100).toFixed(2),
-        DateOpen: dbAccount.DateOpen,
-        IsActive: dbAccount.IsActive,
-        MyFinancesNote: `MyFinances-ID: ${dbAccount._id}`
+        Name: db.Name,
+        AmountOpen: (db.AmountOpen / 100).toFixed(2),
+        DateOpen: db.DateOpen,
+        IsActive: db.IsActive,
+        MyFinancesNote: `MyFinances-ID: ${db._id}`
     };
 }
 

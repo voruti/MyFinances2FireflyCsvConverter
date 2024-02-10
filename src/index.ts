@@ -1,6 +1,7 @@
 import { Database } from "sqlite3";
 
 import { AccountConverter } from "./converter/accountConverter";
+import { TransferConverter } from "./converter/transferConverter";
 
 // input file path:
 const inputFile: string = "FINANCE_DB";
@@ -9,6 +10,7 @@ const inputFile: string = "FINANCE_DB";
 const db: Database = new Database(inputFile);
 
 new AccountConverter(db, "accounts.csv").run();
+new TransferConverter(db, "transfers.csv").run();
 
 // close the database connection:
 db.close((err) => {
